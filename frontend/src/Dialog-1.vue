@@ -5,13 +5,12 @@ import Toast from "primevue/toast";
 import Checkbox from "primevue/checkbox";
 import Card from 'primevue/card';
 import Select from "primevue/select";
-import {computed, onMounted, ref, watch} from "vue";
+import {computed, ref, watch} from "vue";
 import Password from "primevue/password";
 import axios from "axios";
 import {useToast} from 'primevue/usetoast';
 import ProgressSpinner from "primevue/progressspinner";
 import Dialog from "primevue/dialog";
-import ApiService from "@/services/api";
 
 
 const colorsIcons = [
@@ -32,51 +31,49 @@ const colorsIcons = [
 //   { label: "Самопомощь", value: "url('/images/icon-self-care.svg')" }
 // ];
 
-// const cat = ref([
-//   {
-//     id: 0,
-//     name: "Work",
-//     color: "bg-red-300",
-//     icon: "url('/public/images/icon-work.svg')",
-//     isRunning: false,
-//     duration: 8
-//   },
-//   {
-//     id: 0,
-//     name: "Play",
-//     color: "bg-blue-100",
-//     icon: "url('/public/images/icon-play.svg')",
-//     isRunning: false,
-//     duration: 10
-//   },
-//   {
-//     id: 0,
-//     name: "Study",
-//     color: "bg-red-200",
-//     icon: "url('/public/images/icon-study.svg')",
-//     isRunning: false,
-//     duration: 0
-//   },
-//   {
-//     id: 0,
-//     name: "VueJS",
-//     color: "bg-green-300",
-//     icon: "url('/public/images/icon-exercise.svg')",
-//     isRunning: false,
-//     duration: 4
-//   },
-//   {
-//     id: 0,
-//     name: "PostgreSQL",
-//     color: "bg-violet-300",
-//     icon: "url('/public/images/icon-social.svg')",
-//     isRunning: false,
-//     duration: 0
-//   }
-//   // {id:0,  name:"Спорт", color: "bg-orange-300",  icon: "url('/public/images/icon-self-care.svg')",  isRunning: false,  duration:0}
-// ]);
-const cat = ref([]);
-const toast = useToast();
+const cat = ref([
+  {
+    id: 0,
+    name: "Work",
+    color: "bg-red-300",
+    icon: "url('/public/images/icon-work.svg')",
+    isRunning: false,
+    duration: 8
+  },
+  {
+    id: 0,
+    name: "Play",
+    color: "bg-blue-100",
+    icon: "url('/public/images/icon-play.svg')",
+    isRunning: false,
+    duration: 10
+  },
+  {
+    id: 0,
+    name: "Study",
+    color: "bg-red-200",
+    icon: "url('/public/images/icon-study.svg')",
+    isRunning: false,
+    duration: 0
+  },
+  {
+    id: 0,
+    name: "VueJS",
+    color: "bg-green-300",
+    icon: "url('/public/images/icon-exercise.svg')",
+    isRunning: false,
+    duration: 4
+  },
+  {
+    id: 0,
+    name: "PostgreSQL",
+    color: "bg-violet-300",
+    icon: "url('/public/images/icon-social.svg')",
+    isRunning: false,
+    duration: 0
+  }
+  // {id:0,  name:"Спорт", color: "bg-orange-300",  icon: "url('/public/images/icon-self-care.svg')",  isRunning: false,  duration:0}
+]);
 const newCategory = ref({ name: "", color: "", icon: "", duration: 0 });
 const updateIcon = () => {
   const selectedColor = colorsIcons.find(color => color.value === newCategory.value.color);
@@ -90,61 +87,14 @@ const openDialog = ()=> {
   console.log("dsasdf");
   isDialogVisible.value = true;
 };
-
-//********************************
-// Получить все категории
-const fetchCategories = async () => {
-  try {
-    const categories = await ApiService.getCategories();
-    cat.value = Array.isArray(categories) ? categories.flat() : [];
-    // cat.value = categories.flat();
-    console.log("Kat", cat.value);
-
-  } catch (error) {
-    console.error("Не удалось получить категории:", error);
+const addCategory = () => {
+  if (newCategory.value.name.trim()) {
+    console.log(newCategory.value);
+    cat.value.push({ ...newCategory.value, id: cat.value.length + 1 });
+    newCategory.value = { name: "", color: "bg-gray-300", icon: "", duration: 0 };
+    isDialogVisible.value = false;
   }
 };
-
-// Создать новую категорию
-const createCategory = async () => {
-  if (newCategory.value.name.trim()) try {
-    console.log("Создание", newCategory.value)
-    const response = await ApiService.createCategory(newCategory.value);
-    console.log("Категория создана:", response);
-  } catch (error) {
-    console.error("Не удалось создать категорию:", error);
-  }
-};
-onMounted(fetchCategories);
-// const addCategory = async () => {
-//   if (newCategory.value.name.trim()) {
-//     try {
-//       const requestBody = {
-//         apiVer: "1",
-//         payload: [
-//           {
-//               color: newCategory.value.color,
-//               name: newCategory.value.name,
-//             icon: newCategory.value.icon
-//             },
-//         ],
-//         status: "OK",
-//       };
-//
-//       const response = await axios.post("http://127.0.0.1:8080/category", requestBody);
-//
-//       if (response.status === 200) {
-//         cat.value.push({ ...newCategory.value, id: cat.value.length + 1 });
-//         newCategory.value = { name: "", color: "bg-gray-300", icon: "", duration: 0 };
-//         isDialogVisible.value = false;
-//         toast.add({ severity: "success", summary: "Успех", detail: "Категория добавлена", life: 3000 });
-//       }
-//     } catch (error) {
-//       console.error("Ошибка при добавлении категории:", error);
-//       toast.add({ severity: "error", summary: "Ошибка", detail: "Не удалось добавить категорию", life: 3000 });
-//     }
-//   }
-// };
 
 </script>
 
@@ -219,7 +169,7 @@ onMounted(fetchCategories);
             @change="updateIcon"
             class="w-full mt-2"
         />
-        <Button label="Добавить" @click="createCategory" class="mt-4" />
+        <Button label="Добавить" @click="addCategory" class="mt-4" />
       </div>
     </Dialog>
 
