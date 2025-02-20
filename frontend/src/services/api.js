@@ -50,9 +50,13 @@ const ApiService = {
         }
     },
 
-    startTracker: async () => {
+    startTracker: async (id) => {
         try {
-            const response = await apiClient.get("/start");
+            const response = await apiClient.get("/start",{
+                params: {
+                    category_id: id,
+                },
+            });
             return response.data;
         } catch (error) {
             console.error("Ошибка при запуске таймера:", error);
@@ -60,9 +64,13 @@ const ApiService = {
         }
     },
 
-    stopTracker: async () => {
+    stopTracker: async (id) => {
         try {
-            const response = await apiClient.get("/stop");
+            const response = await apiClient.get("/stop",{
+                params: {
+                    category_id: id,
+                },
+            });
             return response.data;
         } catch (error) {
             console.error("Ошибка при остановке таймера:", error);

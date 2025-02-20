@@ -15,12 +15,12 @@ import ApiService from "@/services/api";
 
 
 const colorsIcons = [
-  { label: "Персиковый", value: "bg-red-300", icon: "url('/images/icon-work.svg')"},
-  { label: "Голубой", value: "bg-blue-100", icon: "url('/images/icon-play.svg')" },
-  { label: "Розовый", value: "bg-red-200", icon: "url('/images/icon-study.svg')" },
-  { label: "Зеленый", value: "bg-green-300", icon: "url('/images/icon-exercise.svg')" },
-  { label: "Фиолетовый", value: "bg-violet-300", icon: "url('/images/icon-social.svg')" },
-  { label: "Желтый", value: "bg-orange-300", icon: "url('/images/icon-self-care.svg')" }
+  {label: "Персиковый", value: "bg-red-300", icon: "url('/images/icon-work.svg')"},
+  {label: "Голубой", value: "bg-blue-100", icon: "url('/images/icon-play.svg')"},
+  {label: "Розовый", value: "bg-red-200", icon: "url('/images/icon-study.svg')"},
+  {label: "Зеленый", value: "bg-green-300", icon: "url('/images/icon-exercise.svg')"},
+  {label: "Фиолетовый", value: "bg-violet-300", icon: "url('/images/icon-social.svg')"},
+  {label: "Желтый", value: "bg-orange-300", icon: "url('/images/icon-self-care.svg')"}
 ];
 
 // const icons = [
@@ -76,8 +76,10 @@ const colorsIcons = [
 //   // {id:0,  name:"Спорт", color: "bg-orange-300",  icon: "url('/public/images/icon-self-care.svg')",  isRunning: false,  duration:0}
 // ]);
 const cat = ref([]);
+const selectedCategory = ref({id: 0, name: "", color: "", icon: "", duration: 0});
+
 const toast = useToast();
-const newCategory = ref({ name: "", color: "", icon: "", duration: 0 });
+const newCategory = ref({name: "", color: "", icon: "", duration: 0});
 const updateIcon = () => {
   const selectedColor = colorsIcons.find(color => color.value === newCategory.value.color);
   if (selectedColor) {
@@ -86,14 +88,80 @@ const updateIcon = () => {
   }
 };
 const isDialogVisible = ref(false);
-const openDialog = ()=> {
+const isCategoryVisible = ref(false);
+const openDialog = () => {
   console.log("dsasdf");
   isDialogVisible.value = true;
 };
 
-const openDialog2 = (category)=> {
-  console.log(category.name);
-  //isDialogVisible.value = true;
+//****************************************
+//старт-стоп
+const isRunning = ref(false); // Запущен ли секундомер
+const startTime = ref(0); // Время начала
+const elapsedTime = ref(0); // Прошедшее время
+const timerInterval = ref(null);
+
+// const formattedTime = computed(() => {
+//   const totalSeconds = Math.floor(elapsedTime.value / 1000);
+//   const minutes = Math.floor(totalSeconds / 60);
+//   const seconds = totalSeconds % 60;
+//   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+// });
+const formattedTime = computed(() => {
+  const totalSeconds = Math.floor(elapsedTime.value / 1000);
+  const hours = Math.floor(totalSeconds / 3600); // Часы
+  const minutes = Math.floor((totalSeconds % 3600) / 60); // Минуты
+  const seconds = totalSeconds % 60; // Секунды
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+});
+
+const startStop = (categoryId) => {
+  if (isRunning.value) {
+    // Останавливаем секундомер
+    stopTracker(categoryId);
+    clearInterval(timerInterval.value);
+    isRunning.value = false;
+  } else {
+    //Запускаем сервер
+    startTracker(categoryId);
+    // Запускаем секундомер
+    startTime.value = Date.now() - elapsedTime.value;
+    timerInterval.value = setInterval(() => {
+      elapsedTime.value = Date.now() - startTime.value;
+    }, 10); // Обновляем каждые 10 мс
+    isRunning.value = true;
+  }
+};
+
+const startTracker = async (id) =>{
+try {
+  console.log("категория старта:", id);
+  const response = await ApiService.startTracker(id);
+  console.log("стартовали:", response);
+} catch (error) {
+  console.error("не стартовали", error);
+}
+};
+
+const stopTracker = async (id) =>{
+  try {
+    console.log("категория старта:", id);
+    const response = await ApiService.stopTracker(id);
+    console.log("стартовали:", response);
+  } catch (error) {
+    console.error("не стартовали", error);
+  }
+};
+
+
+
+// const startStop = (id) => {
+//
+// };
+const openCategory = (category) => {
+  selectedCategory.value = JSON.parse(JSON.stringify(category));
+  console.log(selectedCategory.value);
+  isCategoryVisible.value = true;
 };
 //********************************
 //Расчет дат
@@ -142,11 +210,8 @@ const getDateRange = (period) => {
 const fetchSummary = async (period) => {
   try {
     // Получаем даты начала и конца периода
-    const { from, to } = getDateRange(period);
+    const {from, to} = getDateRange(period);
 
-    // Отправляем запрос на сервер
-    console.log("begin", from);
-    console.log("end", to);
     const summary = await ApiService.getSummary(from, to);
     console.log("Сводка за период:", summary);
   } catch (error) {
@@ -177,7 +242,18 @@ const createCategory = async () => {
     console.error("Не удалось создать категорию:", error);
   }
 };
+
+watch(isCategoryVisible, (newVal) => {
+  if (!newVal) {
+    selectedCategory.value = {id: 0, name: "", color: "", icon: "", duration: 0};
+    clearInterval(timerInterval.value);
+    elapsedTime.value = 0;
+    isRunning.value = false;// Очищаем данные при закрытии окна
+  }
+});
+
 onMounted(fetchCategories);
+
 // const addCategory = async () => {
 //   if (newCategory.value.name.trim()) {
 //     try {
@@ -215,7 +291,7 @@ onMounted(fetchCategories);
     <section class=" lg:row-span-2 bg-blue-600 rounded-xl m-4">
       <div class="grid grid-cols-[80px_1fr] lg:grid-cols-1 lg:h-96 bg-primary p-8 rounded-xl">
         <img src="/images/image-kioto-2.jpg"
-             class="rounded-full border-4 border-white w-20 h-20 lg:w-40 lg:h-40">
+             class="rounded-full border-2 border-white w-20 h-20 lg:w-40 lg:h-40">
         <div>
 
           <p class="text-lg text-blue-200">Report for</p>
@@ -224,8 +300,10 @@ onMounted(fetchCategories);
       </div>
       <div class="grid grid-cols-3 lg:grid-cols-1 lg:gap-4  p-4">
         <span class="text-center lg:text-left text-blue-200 cursor-pointer hover:text-xl" @click="fetchSummary('day')"> Daily </span>
-        <span class="text-center lg:text-left cursor-pointer hover:text-xl" @click="fetchSummary('week')">  Weekly </span>
-        <span class="text-center lg:text-left text-blue-200 cursor-pointer hover:text-xl" @click="fetchSummary('month')">  Monthly </span>
+        <span class="text-center lg:text-left cursor-pointer hover:text-xl"
+              @click="fetchSummary('week')">  Weekly </span>
+        <span class="text-center lg:text-left text-blue-200 cursor-pointer hover:text-xl"
+              @click="fetchSummary('month')">  Monthly </span>
       </div>
     </section>
 
@@ -236,7 +314,7 @@ onMounted(fetchCategories);
     >
       <div class="h-12 ">
       </div>
-      <div class="card-cat" @click="openDialog2(category)">
+      <div class="card-cat" @click="openCategory(category)">
         <div class="grid grid-cols-2">
           <div class="text-xl font-bold"> {{ category.name }}</div>
           <div class="justify-end text-2xl  text-end">...</div>
@@ -250,19 +328,11 @@ onMounted(fetchCategories);
       </div>
     </section>
     <section class="card-top">
-      <div class=" h-full w-full p-6 rounded-xl bg-[url('/images/icon-work1.svg')]
+      <div class=" min-h-36 h-full w-full p-6 rounded-xl bg-[url('/images/icon-work1.svg')]
       bg-no-repeat bg-center cursor-pointer hover:bg-blue-600" @click="openDialog">
-        <p class="text-center text-white/10 text-2xl"> Добавить </p>
-        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          <!-- Основная часть портфеля -->
-          <rect x="20" y="30" width="60" height="40" rx="5" ry="5" fill="#4A5D73" stroke="#2C3E50" stroke-width="3"/>
+        <!--        <p class="text-center text-white/10 text-2xl"> Добавить </p>-->
 
-          <!-- Ручка портфеля -->
-          <rect x="35" y="20" width="30" height="10" rx="3" ry="3" fill="#4A5D73" stroke="#2C3E50" stroke-width="3"/>
 
-          <!-- Застежка -->
-          <rect x="45" y="48" width="10" height="12" fill="#2C3E50" stroke="#2C3E50" stroke-width="2"/>
-        </svg>
       </div>
     </section>
 
@@ -274,25 +344,53 @@ onMounted(fetchCategories);
         :headerStyle="{ backgroundColor: '##1a1d42' }"
         class="dark"
     >
-      <div class="p-4 dark">
-        <label class="block ">Что будем считать?</label>
-        <InputText
-            v-model="newCategory.name"
-            class="w-full mt-2 "
-            placeholder="Введите категорию"
-        />
-        <label class="block ">Цвет</label>
-        <Select
-            v-model="newCategory.color"
-            :options="colorsIcons"
-            optionLabel="label"
-            optionValue="value"
-            optionIcon="Icon"
-            placeholder="Выберите цвет"
-            @change="updateIcon"
-            class="w-full mt-2"
-        />
-        <Button label="Добавить" @click="createCategory" class="mt-4" />
+      <div class="p-2  rounded-xl" :class="newCategory.color || 'bg-blue-100'">
+        <div class="card flex flex-col  gap-4">
+          <label class="block ">Что будем считать?</label>
+          <InputText
+              v-model="newCategory.name"
+              class="w-full mt-2 "
+              placeholder="Введите категорию"
+          />
+          <label class="block ">Цвет</label>
+          <Select
+              v-model="newCategory.color"
+              :options="colorsIcons"
+              optionLabel="label"
+              optionValue="value"
+              optionIcon="Icon"
+              placeholder="Выберите цвет"
+              @change="updateIcon"
+              class="w-full mt-2"
+          />
+          <Button label="Добавить" @click="createCategory" class="mt-4"/>
+        </div>
+      </div>
+    </Dialog>
+
+    <Dialog
+        v-model:visible="isCategoryVisible"
+        header=""
+        modal
+        :showHeader="true"
+    >
+      <template #header  >
+        <div class="bg-blue-400">
+
+        </div>
+
+      </template>
+      <div class="p-2  rounded-xl" :class="selectedCategory.color || 'bg-blue-100'">
+        <div class="card flex flex-col  gap-4">
+          <label class="block text-5xl text-center">{{ selectedCategory.name }}</label>
+          <div class="min-h-64 min-w-64">
+            <div class="text-[8rem]" :class="isRunning ? 'text-white' : 'text-gray-500'">
+              {{ formattedTime }}
+            </div>
+          </div>
+
+          <Button label="Старт/Стоп" @click="startStop(selectedCategory.id)" class="mt-4"/>
+        </div>
       </div>
     </Dialog>
 
