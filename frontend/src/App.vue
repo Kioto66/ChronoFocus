@@ -75,6 +75,7 @@ const colorsIcons = [
 //   }
 //   // {id:0,  name:"Спорт", color: "bg-orange-300",  icon: "url('/public/images/icon-self-care.svg')",  isRunning: false,  duration:0}
 // ]);
+//const cat = ref([]);
 const cat = ref([]);
 const selectedCategory = ref({id: 0, name: "", color: "", icon: "", duration: 0});
 
