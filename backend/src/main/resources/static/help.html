@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>worktracker-backend API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 5px;
+            display: block;
+            white-space: pre-wrap;
+        }
+        h1, h2 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+<h1>worktracker-backend</h1>
+<p>Backend для отслеживания времени работы над задачами.</p>
+
+<h2>GET /summary?from=2025-01-21&amp;to=2025-02-17</h2>
+<h3>Параметры</h3>
+<ul>
+    <li><strong>from</strong> - обязательный параметр, с какой даты начинать подсчёт (включительно)</li>
+    <li><strong>to</strong> - необязательный параметр, до какой даты считать (включительно), если не задан, используется текущая дата.</li>
+</ul>
+
+<h3>Ответ</h3>
+<code>{
+"apiVer": "1",
+"payload": [
+    {
+        "category": {
+            "id": 1,
+            "name": "Трудовая деятельность"
+        },
+        "duration": {
+            "hours": 8,
+            "minutes": 9,
+            "seconds": 0
+        }
+    },
+    {
+        "category": {
+            "id": 2,
+            "name": "Нетрудовая деятельность"
+        },
+        "duration": {
+            "hours": 2,
+            "minutes": 0,
+            "seconds": 0
+        }
+    }
+],
+"status": "OK"
+}</code>
+
+<h2>GET /current_tracker</h2>
+<h3>Параметры</h3>
+<ul>
+    <li>не предусмотрены</li>
+</ul>
+
+<h3>Ответ</h3>
+
+<code>{
+"apiVer": "1",
+"payload": [
+    {
+    "category": {
+        "id": 1,
+        "name": "Трудовая деятельность"
+    },
+    "startTimestamp": "2025-02-19T11:59:01.577414"
+    }
+],
+"status": "OK"
+}</code>
+
+<h2>GET /category</h2>
+<h3>Параметры</h3>
+<ul>
+    <li><strong>id</strong> - необязательный параметр, идентификатор(ы) категорий</li>
+</ul>
+
+<h3>Ответ</h3>
+
+<code>{
+"apiVer": "1",
+"payload": [
+    {
+    "category": {
+        "id": 1,
+        "name": "Трудовая деятельность"
+    },
+    {
+    "category": {
+        "id": 2,
+        "name": "Нетрудовая деятельность"
+    },
+}
+],
+"status": "OK"
+}</code>
+
+
+<h2>POST /category</h2>
+<h3>Параметры</h3>
+<p>Не предусмотрены.</p>
+
+<h3>Тело</h3>
+<p>Если id отсутствует, то будет создан новый элемент.</p>
+
+<code>{
+    "apiVer": "1",
+    "payload": [
+    {
+        "category": {
+            "id": 1,
+            "name": "Трудовая деятельность"
+        },
+    }
+    ],
+    "status": "OK"
+    }</code>
+
+<h2>GET /start</h2>
+<h3>Параметры</h3>
+<ul>
+    <li><strong>category_id</strong> - обязательный параметр, идентификатор категории</li>
+    <li><strong>date_time</strong> - необязательный параметры, дата и время, если пустой, то применяется текущие дата и время. Формат yyyy-MM-dd_HH:mm:ss</li>
+</ul>
+<h3>Пример</h3>
+<code>/start?category_id=1&date_time=2023-01-01_13:50:34</code>
+
+<h3>Ответ</h3>
+<code>{
+    "apiVer": "1",
+    "payload": [
+    {
+        "id": 6,
+        "category": {
+            "id": 1,
+            "name": "Трудовая деятельность"
+        },
+        "startTimestamp": "2023-01-01_13:50:34"
+    }
+    ],
+    "status": "OK"
+    }</code>
+
+<h2>GET /stop</h2>
+<h3>Параметры</h3>
+<ul>
+    <li><strong>category_id</strong> - обязательный параметр, идентификатор категории</li>
+    <li><strong>date_time</strong> - необязательный параметры, дата и время, если пустой, то применяется текущие дата и время. Формат yyyy-MM-dd_HH:mm:ss</li>
+</ul>
+<h3>Пример</h3>
+<code>/stop?category_id=1&date_time=2023-01-01_13:50:34</code>
+
+<h3>Ответ</h3>
+<code>{
+    "apiVer": "1",
+    "payload": [
+    {
+        "id": 123,
+        "category": {
+            "id": 1,
+            "name": "Трудовая деятельность"
+         },
+        "startTimestamp": "2023-01-01_13:50:34",
+        "stopTimestamp": "2023-02-03_20:22:33",
+    }
+    ],
+    "status": "OK"
+    }</code>
+
+</body>
+</html>
