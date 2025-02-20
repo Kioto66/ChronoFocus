@@ -91,6 +91,68 @@ const openDialog = ()=> {
   isDialogVisible.value = true;
 };
 
+const openDialog2 = (category)=> {
+  console.log(category.name);
+  //isDialogVisible.value = true;
+};
+//********************************
+//Расчет дат
+const getDateRange = (period) => {
+  const now = new Date(); // Текущая дата и время
+  let startDate;
+
+  switch (period) {
+    case "day":
+      // Начало текущего дня
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      break;
+
+    case "week":
+      // Начало текущей недели (понедельник)
+      const dayOfWeek = now.getDay(); // 0 (воскресенье) - 6 (суббота)
+      const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Коррекция для воскресенья
+      startDate = new Date(now.getFullYear(), now.getMonth(), diff);
+      break;
+
+    case "month":
+      // Начало текущего месяца
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      break;
+
+    default:
+      throw new Error("Неизвестный период");
+  }
+
+  // Форматируем даты в формат YYYY-MM-DD с использованием локального времени
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Месяцы начинаются с 0
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  return {
+    from: formatDate(startDate), // Начало периода
+    to: formatDate(now), // Текущее время
+  };
+};
+
+//*****************************
+//Получаем отчет
+const fetchSummary = async (period) => {
+  try {
+    // Получаем даты начала и конца периода
+    const { from, to } = getDateRange(period);
+
+    // Отправляем запрос на сервер
+    console.log("begin", from);
+    console.log("end", to);
+    const summary = await ApiService.getSummary(from, to);
+    console.log("Сводка за период:", summary);
+  } catch (error) {
+    console.error("Не удалось получить сводку:", error);
+  }
+};
 //********************************
 // Получить все категории
 const fetchCategories = async () => {
@@ -161,9 +223,9 @@ onMounted(fetchCategories);
         </div>
       </div>
       <div class="grid grid-cols-3 lg:grid-cols-1 lg:gap-4  p-4">
-        <span class="text-center lg:text-left text-blue-200 cursor-pointer hover:text-xl"> Daily </span>
-        <span class="text-center lg:text-left cursor-pointer hover:text-xl">  Weekly </span>
-        <span class="text-center lg:text-left text-blue-200 cursor-pointer hover:text-xl">  Monthly </span>
+        <span class="text-center lg:text-left text-blue-200 cursor-pointer hover:text-xl" @click="fetchSummary('day')"> Daily </span>
+        <span class="text-center lg:text-left cursor-pointer hover:text-xl" @click="fetchSummary('week')">  Weekly </span>
+        <span class="text-center lg:text-left text-blue-200 cursor-pointer hover:text-xl" @click="fetchSummary('month')">  Monthly </span>
       </div>
     </section>
 
@@ -174,7 +236,7 @@ onMounted(fetchCategories);
     >
       <div class="h-12 ">
       </div>
-      <div class="card-cat">
+      <div class="card-cat" @click="openDialog2(category)">
         <div class="grid grid-cols-2">
           <div class="text-xl font-bold"> {{ category.name }}</div>
           <div class="justify-end text-2xl  text-end">...</div>
@@ -191,6 +253,16 @@ onMounted(fetchCategories);
       <div class=" h-full w-full p-6 rounded-xl bg-[url('/images/icon-work1.svg')]
       bg-no-repeat bg-center cursor-pointer hover:bg-blue-600" @click="openDialog">
         <p class="text-center text-white/10 text-2xl"> Добавить </p>
+        <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Основная часть портфеля -->
+          <rect x="20" y="30" width="60" height="40" rx="5" ry="5" fill="#4A5D73" stroke="#2C3E50" stroke-width="3"/>
+
+          <!-- Ручка портфеля -->
+          <rect x="35" y="20" width="30" height="10" rx="3" ry="3" fill="#4A5D73" stroke="#2C3E50" stroke-width="3"/>
+
+          <!-- Застежка -->
+          <rect x="45" y="48" width="10" height="12" fill="#2C3E50" stroke="#2C3E50" stroke-width="2"/>
+        </svg>
       </div>
     </section>
 
@@ -200,8 +272,9 @@ onMounted(fetchCategories);
         modal
         :contentStyle="{ backgroundColor: '##1a1d42' }"
         :headerStyle="{ backgroundColor: '##1a1d42' }"
+        class="dark"
     >
-      <div class="p-4">
+      <div class="p-4 dark">
         <label class="block ">Что будем считать?</label>
         <InputText
             v-model="newCategory.name"
