@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class WorkTrackerService {
+public class ChronoTrackerService {
     private final CategoryRepository categoryRepository;
     private final TrackersRepository trackersRepository;
 

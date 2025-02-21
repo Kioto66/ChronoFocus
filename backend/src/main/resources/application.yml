@@ -2,9 +2,9 @@ server:
   port: 8080
 spring:
   application:
-    name: worktracker-backend
+    name: chronofocus-backend
   datasource:
-    url: jdbc:h2:file:./worktrackerdb;DB_CLOSE_DELAY=-1
+    url: jdbc:h2:file:./chronofocus;DB_CLOSE_DELAY=-1
     driverClassName: org.h2.Driver
   h2:
     console:
@@ -23,11 +23,15 @@ spring:
     default-property-inclusion: non-null
     visibility:
       field: any
+#springdoc:
+#  api-docs.path: /api-docs
+#  swagger-ui.path: /swagger-ui.html
+#  swagger-ui.url: /api/__openapi.yaml
 
 logging:
   level:
     root: INFO
-    ru.k4nk.worktracker: INFO
+    ru.k4nk.chronofocus: INFO
     org.hibernate.SQL: WARN
     org.springframework: INFO
     org.springframework.security.web.access: INFO
