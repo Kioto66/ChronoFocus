@@ -43,7 +43,7 @@ const ApiService = {
     getCurrentTracker: async () => {
         try {
             const response = await apiClient.get("/current_tracker");
-            return response.data;
+            return response.data.payload;
         } catch (error) {
             console.error("Ошибка при получении текущего таймера:", error);
             throw error;
@@ -87,7 +87,7 @@ const ApiService = {
                     to: toDate,
                 },
             });
-            return response.data;
+            return response.data.payload;
         } catch (error) {
             console.error("Ошибка при получении сводки:", error);
             throw error;

@@ -23,14 +23,7 @@ const colorsIcons = [
   {label: "Желтый", value: "bg-orange-300", icon: "url('/images/icon-self-care.svg')"}
 ];
 
-// const icons = [
-//   { label: "Работа", value: "url('/images/icon-work.svg')" },
-//   { label: "Игра", value: "url('/images/icon-play.svg')" },
-//   { label: "Учеба", value: "url('/images/icon-study.svg')" },
-//   { label: "Спорт", value: "url('/images/icon-exercise.svg')" },
-//   { label: "Соцсети", value: "url('/images/icon-social.svg')" },
-//   { label: "Самопомощь", value: "url('/images/icon-self-care.svg')" }
-// ];
+
 
 // const cat = ref([
 //   {
@@ -77,6 +70,7 @@ const colorsIcons = [
 // ]);
 //const cat = ref([]);
 const cat = ref([]);
+const refPeriod= ref("month");
 const selectedCategory = ref({id: 0, name: "", color: "", icon: "", duration: 0});
 
 const toast = useToast();
@@ -97,10 +91,21 @@ const openDialog = () => {
 
 //****************************************
 //старт-стоп
-const isRunning = ref(false); // Запущен ли секундомер
+const isRunning = ref(false);// Запущен ли секундомер
+const refCurrentTracker= ref(0);
 const startTime = ref(0); // Время начала
 const elapsedTime = ref(0); // Прошедшее время
 const timerInterval = ref(null);
+
+const getCurrentTracker = async()=>{
+  try {
+    const response = await ApiService.getCurrentTracker();
+    console.log("получили isRunning:", response);
+
+  } catch (error) {
+    console.error("не получили isRunning", error);
+  }
+}
 
 // const formattedTime = computed(() => {
 //   const totalSeconds = Math.floor(elapsedTime.value / 1000);
@@ -118,8 +123,8 @@ const formattedTime = computed(() => {
 
 const startStop = (categoryId) => {
   if (isRunning.value) {
-    // Останавливаем секундомер
     stopTracker(categoryId);
+    // Останавливаем секундомер
     clearInterval(timerInterval.value);
     isRunning.value = false;
   } else {
@@ -156,9 +161,7 @@ const stopTracker = async (id) =>{
 
 
 
-// const startStop = (id) => {
-//
-// };
+
 const openCategory = (category) => {
   selectedCategory.value = JSON.parse(JSON.stringify(category));
   console.log(selectedCategory.value);
@@ -166,7 +169,7 @@ const openCategory = (category) => {
 };
 //********************************
 //Расчет дат
-const getDateRange = (period) => {
+const getDateRange = (period="month") => {
   const now = new Date(); // Текущая дата и время
   let startDate;
 
@@ -174,6 +177,8 @@ const getDateRange = (period) => {
     case "day":
       // Начало текущего дня
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      refPeriod.value="day";
+
       break;
 
     case "week":
@@ -181,11 +186,13 @@ const getDateRange = (period) => {
       const dayOfWeek = now.getDay(); // 0 (воскресенье) - 6 (суббота)
       const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Коррекция для воскресенья
       startDate = new Date(now.getFullYear(), now.getMonth(), diff);
+      refPeriod.value="week";
       break;
 
     case "month":
       // Начало текущего месяца
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      refPeriod.value="month";
       break;
 
     default:
@@ -208,20 +215,21 @@ const getDateRange = (period) => {
 
 //*****************************
 //Получаем отчет
-const fetchSummary = async (period) => {
+const getSummaryResults = async (period) => {
   try {
     // Получаем даты начала и конца периода
     const {from, to} = getDateRange(period);
 
     const summary = await ApiService.getSummary(from, to);
     console.log("Сводка за период:", summary);
+    console.log("период:", refPeriod.value);
   } catch (error) {
     console.error("Не удалось получить сводку:", error);
   }
 };
 //********************************
 // Получить все категории
-const fetchCategories = async () => {
+const getCategories = async () => {
   try {
     const categories = await ApiService.getCategories();
     cat.value = Array.isArray(categories) ? categories.flat() : [];
@@ -244,6 +252,8 @@ const createCategory = async () => {
   }
 };
 
+
+//Отслеживаю закрытие окна с категорией, сбрасываю таймер и текущую кат
 watch(isCategoryVisible, (newVal) => {
   if (!newVal) {
     selectedCategory.value = {id: 0, name: "", color: "", icon: "", duration: 0};
@@ -253,37 +263,12 @@ watch(isCategoryVisible, (newVal) => {
   }
 });
 
-onMounted(fetchCategories);
+onMounted(getCategories);
+onMounted(getCurrentTracker);
+onMounted(getSummaryResults);
 
-// const addCategory = async () => {
-//   if (newCategory.value.name.trim()) {
-//     try {
-//       const requestBody = {
-//         apiVer: "1",
-//         payload: [
-//           {
-//               color: newCategory.value.color,
-//               name: newCategory.value.name,
-//             icon: newCategory.value.icon
-//             },
-//         ],
-//         status: "OK",
-//       };
-//
-//       const response = await axios.post("http://127.0.0.1:8080/category", requestBody);
-//
-//       if (response.status === 200) {
-//         cat.value.push({ ...newCategory.value, id: cat.value.length + 1 });
-//         newCategory.value = { name: "", color: "bg-gray-300", icon: "", duration: 0 };
-//         isDialogVisible.value = false;
-//         toast.add({ severity: "success", summary: "Успех", detail: "Категория добавлена", life: 3000 });
-//       }
-//     } catch (error) {
-//       console.error("Ошибка при добавлении категории:", error);
-//       toast.add({ severity: "error", summary: "Ошибка", detail: "Не удалось добавить категорию", life: 3000 });
-//     }
-//   }
-// };
+
+
 
 </script>
 
@@ -300,11 +285,11 @@ onMounted(fetchCategories);
         </div>
       </div>
       <div class="grid grid-cols-3 lg:grid-cols-1 lg:gap-4  p-4">
-        <span class="text-center lg:text-left text-blue-200 cursor-pointer hover:text-xl" @click="fetchSummary('day')"> Daily </span>
-        <span class="text-center lg:text-left cursor-pointer hover:text-xl"
-              @click="fetchSummary('week')">  Weekly </span>
-        <span class="text-center lg:text-left text-blue-200 cursor-pointer hover:text-xl"
-              @click="fetchSummary('month')">  Monthly </span>
+        <span class="text-center lg:text-left cursor-pointer hover:text-xl" :class="refPeriod === 'day' ? 'text-white' : 'text-blue-200'" @click="getSummaryResults('day')"> Daily </span>
+        <span class="text-center lg:text-left cursor-pointer hover:text-xl" :class="refPeriod === 'week' ? 'text-white' : 'text-blue-200'"
+              @click="getSummaryResults('week')">  Weekly </span>
+        <span class="text-center lg:text-left text-blue-200 cursor-pointer hover:text-xl" :class="refPeriod === 'month' ? 'text-white' : 'text-blue-200'"
+              @click="getSummaryResults('month')">  Monthly </span>
       </div>
     </section>
 
