@@ -24,7 +24,6 @@ const colorsIcons = [
 ];
 
 
-
 // const cat = ref([
 //   {
 //     id: 0,
@@ -70,7 +69,10 @@ const colorsIcons = [
 // ]);
 //const cat = ref([]);
 const cat = ref([]);
-const refPeriod= ref("month");
+const refPeriod = ref("month");
+const refRunningCategory = ref(0);
+const refStartTimestamp = ref(0);
+
 const selectedCategory = ref({id: 0, name: "", color: "", icon: "", duration: 0});
 
 const toast = useToast();
@@ -92,15 +94,34 @@ const openDialog = () => {
 //****************************************
 //старт-стоп
 const isRunning = ref(false);// Запущен ли секундомер
-const refCurrentTracker= ref(0);
+const refCurrentTracker = ref(0);
 const startTime = ref(0); // Время начала
 const elapsedTime = ref(0); // Прошедшее время
 const timerInterval = ref(null);
 
-const getCurrentTracker = async()=>{
+const getCurrentTracker = async () => {
   try {
     const response = await ApiService.getCurrentTracker();
     console.log("получили isRunning:", response);
+    if (Array.isArray(response) && response.length > 0) {
+      refStartTimestamp.value = response[0]?.startTimestamp;
+
+
+      // Проверяем, есть ли категория у первого элемента массива
+      const categoryId = response[0]?.category?.id;
+      if (categoryId) {
+        refRunningCategory.value = categoryId;
+        console.log("Запущена кат:", response[0]?.category?.name);
+      } else {
+        console.warn('Категория не найдена у первого элемента');
+      }
+    } else {
+      // Если массив пустой
+      console.log("не запущена");
+      refRunningCategory.value = 0;
+      isRunning.value = false;
+      elapsedTime.value = 0;
+    }
 
   } catch (error) {
     console.error("не получили isRunning", error);
@@ -121,15 +142,25 @@ const formattedTime = computed(() => {
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 });
 
-const startStop = (categoryId) => {
-  if (isRunning.value) {
-    stopTracker(categoryId);
+const startStop = async (categoryId) => {
+  console.log("СТАРТ_СТОП сравнение категорийИД");
+  console.log(categoryId);
+  console.log(refRunningCategory.value);
+  if (refRunningCategory.value === categoryId) {
+    await stopTracker(categoryId);
     // Останавливаем секундомер
     clearInterval(timerInterval.value);
     isRunning.value = false;
   } else {
+    if (refRunningCategory.value > 0) {
+      await stopTracker(refRunningCategory.value);
+      // Останавливаем секундомер
+      clearInterval(timerInterval.value);
+      isRunning.value = false;
+    }
+
     //Запускаем сервер
-    startTracker(categoryId);
+    await startTracker(categoryId);
     // Запускаем секундомер
     startTime.value = Date.now() - elapsedTime.value;
     timerInterval.value = setInterval(() => {
@@ -137,39 +168,77 @@ const startStop = (categoryId) => {
     }, 10); // Обновляем каждые 10 мс
     isRunning.value = true;
   }
+  await getCurrentTracker();
+  console.log("после СТАРТ_СТОП категорииИД");
+  console.log(categoryId);
+  console.log(refRunningCategory.value);
 };
 
-const startTracker = async (id) =>{
-try {
-  console.log("категория старта:", id);
-  const response = await ApiService.startTracker(id);
-  console.log("стартовали:", response);
-} catch (error) {
-  console.error("не стартовали", error);
-}
-};
-
-const stopTracker = async (id) =>{
+const startTracker = async (id) => {
   try {
     console.log("категория старта:", id);
-    const response = await ApiService.stopTracker(id);
+    const response = await ApiService.startTracker(id);
     console.log("стартовали:", response);
   } catch (error) {
     console.error("не стартовали", error);
   }
 };
 
+const stopTracker = async (id) => {
+  try {
+    console.log("категория стопа:", id);
+    const response = await ApiService.stopTracker(id);
+    console.log("Остановили:", response);
+  } catch (error) {
+    console.error("не остановили", error);
+  }
+};
 
 
-
-const openCategory = (category) => {
+const openCategory = async (category) => {
   selectedCategory.value = JSON.parse(JSON.stringify(category));
-  console.log(selectedCategory.value);
+  await getCurrentTracker();
+  if (refRunningCategory.value !== category.id) {
+    console.log("++++++++++++++++++++++");
+    console.log(refStartTimestamp.value);
+    elapsedTime.value = 0;
+    isRunning.value = false;
+    timerInterval.value = 0;
+  } else {
+    //Если категория запущена, то запускаеm ее и здесь
+    console.log("***********************");
+    console.log(refStartTimestamp.value);
+
+// console.log(refStartTimestamp);
+    startTime.value = new Date(refStartTimestamp.value).getTime();
+    elapsedTime.value = Date.now() - startTime.value;
+    //const startTime = new Date(refStartTimestamp.value).getTime();// Преобразуем метку времени в миллисекунды
+    //const currTime =Date.now();
+
+    // startTime.value = Date.now() - elapsedTime.value;
+    // timerInterval.value = setInterval(() => {
+    //   elapsedTime.value = Date.now() - startTime.value;
+    // }, 10); // Обновляем каждые 10 мс
+    // isRunning.value = true;
+
+    console.log("////////////////////////");
+    timerInterval.value = setInterval(() => {
+      elapsedTime.value = Date.now() - startTime.value;
+    }, 500);
+    isRunning.value = true;
+  }
+  console.log(category.id);
+  console.log(refRunningCategory.value);
+  console.log('значения секундомера');
+  console.log("timerInterval", timerInterval.value);
+  console.log("elapsedTime", elapsedTime.value);
+  console.log("startTime", startTime.value);
+  console.log("isRunning", isRunning.value);
   isCategoryVisible.value = true;
 };
 //********************************
 //Расчет дат
-const getDateRange = (period="month") => {
+const getDateRange = (period = "month") => {
   const now = new Date(); // Текущая дата и время
   let startDate;
 
@@ -177,7 +246,7 @@ const getDateRange = (period="month") => {
     case "day":
       // Начало текущего дня
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      refPeriod.value="day";
+      refPeriod.value = "day";
 
       break;
 
@@ -186,13 +255,13 @@ const getDateRange = (period="month") => {
       const dayOfWeek = now.getDay(); // 0 (воскресенье) - 6 (суббота)
       const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Коррекция для воскресенья
       startDate = new Date(now.getFullYear(), now.getMonth(), diff);
-      refPeriod.value="week";
+      refPeriod.value = "week";
       break;
 
     case "month":
       // Начало текущего месяца
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      refPeriod.value="month";
+      refPeriod.value = "month";
       break;
 
     default:
@@ -212,7 +281,12 @@ const getDateRange = (period="month") => {
     to: formatDate(now), // Текущее время
   };
 };
-
+//преобразование объекта duration в строку
+const formatDuration = (duration) => {
+  const pad = (num) => String(num).padStart(2, '0'); // Добавляет ведущий 0, если нужно
+  //return `${pad(duration.hours)}:${pad(duration.minutes)}:${pad(duration.seconds)}`;
+  return `${pad(duration.hours)}:${pad(duration.minutes)}`;
+};
 //*****************************
 //Получаем отчет
 const getSummaryResults = async (period) => {
@@ -223,6 +297,42 @@ const getSummaryResults = async (period) => {
     const summary = await ApiService.getSummary(from, to);
     console.log("Сводка за период:", summary);
     console.log("период:", refPeriod.value);
+    //*******************
+    if (!summary || summary.length === 0) return;
+
+    // Получаем массив body из входящих данных
+    const incomingCategories = summary[0].body;
+
+    // Обновляем duration в массиве cat
+    incomingCategories.forEach((incomingCat) => {
+      const existingCat = cat.value.find((c) => c.id === incomingCat.id);
+
+      if (existingCat) {
+        // Если категория найдена, обновляем duration
+        existingCat.duration = formatDuration(incomingCat.duration);
+      } else {
+        // Если категории ещё нет, добавляем новую
+        cat.value.push({
+          id: incomingCat.id,
+          name: incomingCat.name,
+          color: incomingCat.color,
+          icon: incomingCat.icon,
+          isRunning: false,
+          duration: incomingCat.duration
+        });
+      }
+      cat.value.forEach((existingCat) => {
+        const found = incomingCategories.find((incomingCat) => incomingCat.id === existingCat.id);
+        if (!found) {
+          existingCat.duration = '00:00';
+        }
+      });
+      console.log(existingCat);
+    });
+    console.log("ДОбавляем duration");
+    console.log(cat.value);
+
+    //********************************
   } catch (error) {
     console.error("Не удалось получить сводку:", error);
   }
@@ -252,7 +362,11 @@ const createCategory = async () => {
   }
 };
 
-
+const refresh = async() =>{
+  await getCategories();
+  await getSummaryResults();
+  await getCurrentTracker();
+}
 //Отслеживаю закрытие окна с категорией, сбрасываю таймер и текущую кат
 watch(isCategoryVisible, (newVal) => {
   if (!newVal) {
@@ -263,11 +377,9 @@ watch(isCategoryVisible, (newVal) => {
   }
 });
 
-onMounted(getCategories);
-onMounted(getCurrentTracker);
-onMounted(getSummaryResults);
-
-
+onMounted(refresh);
+// onMounted(getSummaryResults);
+// onMounted(getCurrentTracker);
 
 
 </script>
@@ -285,10 +397,14 @@ onMounted(getSummaryResults);
         </div>
       </div>
       <div class="grid grid-cols-3 lg:grid-cols-1 lg:gap-4  p-4">
-        <span class="text-center lg:text-left cursor-pointer hover:text-xl" :class="refPeriod === 'day' ? 'text-white' : 'text-blue-200'" @click="getSummaryResults('day')"> Daily </span>
-        <span class="text-center lg:text-left cursor-pointer hover:text-xl" :class="refPeriod === 'week' ? 'text-white' : 'text-blue-200'"
+        <span class="text-center lg:text-left cursor-pointer hover:text-xl"
+              :class="refPeriod === 'day' ? 'text-white' : 'text-blue-200'"
+              @click="getSummaryResults('day')"> Daily </span>
+        <span class="text-center lg:text-left cursor-pointer hover:text-xl"
+              :class="refPeriod === 'week' ? 'text-white' : 'text-blue-200'"
               @click="getSummaryResults('week')">  Weekly </span>
-        <span class="text-center lg:text-left text-blue-200 cursor-pointer hover:text-xl" :class="refPeriod === 'month' ? 'text-white' : 'text-blue-200'"
+        <span class="text-center lg:text-left text-blue-200 cursor-pointer hover:text-xl"
+              :class="refPeriod === 'month' ? 'text-white' : 'text-blue-200'"
               @click="getSummaryResults('month')">  Monthly </span>
       </div>
     </section>
@@ -300,15 +416,16 @@ onMounted(getSummaryResults);
     >
       <div class="h-12 ">
       </div>
-      <div class="card-cat" @click="openCategory(category)">
-        <div class="grid grid-cols-2">
+      <div class="card-cat  " :class="refRunningCategory===category.id ? 'text-red-200':''"
+           @click="openCategory(category)">
+        <div class="grid grid-cols-2 ">
           <div class="text-xl font-bold"> {{ category.name }}</div>
           <div class="justify-end text-2xl  text-end">...</div>
           <button label="button" class="text-white"></button>
         </div>
 
         <div class="cat-result">
-          <div class="text-5xl font-mono"> {{ category.duration }}hrs</div>  <!-- daily -->
+          <div class="text-5xl text-center"> {{ category.duration }}</div>  <!-- daily -->
           <div class="last-result">Previous - 29hrs</div>
         </div>
       </div>
@@ -356,21 +473,30 @@ onMounted(getSummaryResults);
 
     <Dialog
         v-model:visible="isCategoryVisible"
-        header=""
+        header="Что-то написано"
         modal
         :showHeader="true"
+        class="no-border-dialog"
     >
-      <template #header  >
-        <div class="bg-blue-400">
-
+      <template #header>
+        <div >
+          <h2 class="text-white text-5xl text-center">{{ selectedCategory.name }}</h2>
         </div>
 
       </template>
-      <div class="p-2  rounded-xl" :class="selectedCategory.color || 'bg-blue-100'">
-        <div class="card flex flex-col  gap-4">
-          <label class="block text-5xl text-center">{{ selectedCategory.name }}</label>
+      <div
+          class="pt-20 rounded-3xl"
+          :class="selectedCategory.color || 'bg-blue-100'"
+          :style="selectedCategory.icon.length > 0 ? {
+    backgroundImage: selectedCategory.icon,
+    backgroundPosition: '95% 2%',
+    backgroundRepeat: 'no-repeat',
+  } : {}">
+        <div class="card rounded-3xl flex flex-col  gap-4">
+<!--          <label class="block text-5xl text-center">{{ selectedCategory.name }}</label>-->
+<!--          <label class="block text-2xl text-center">{{ selectedCategory.icon }}</label>-->
           <div class="min-h-64 min-w-64">
-            <div class="text-[8rem]" :class="isRunning ? 'text-white' : 'text-gray-500'">
+            <div class="text-[8rem] " :class="isRunning ? 'text-white' : 'text-gray-500'">
               {{ formattedTime }}
             </div>
           </div>
@@ -380,11 +506,69 @@ onMounted(getSummaryResults);
       </div>
     </Dialog>
 
-
+<!--    <Dialog-->
+<!--        v-model:visible="isCategoryVisible"-->
+<!--        header="Что-то написано"-->
+<!--        modal-->
+<!--        :showHeader="true"-->
+<!--        class="no-border-dialog"-->
+<!--    >-->
+<!--      <template #header>-->
+<!--        <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-4">-->
+<!--          <h2 class="text-white text-xl font-bold">Что-то написано</h2>-->
+<!--        </div>-->
+<!--      </template>-->
+<!--      <div-->
+<!--          class="pt-20 rounded-2xl"-->
+<!--          :class="selectedCategory.color || 'bg-blue-100'"-->
+<!--          :style="selectedCategory.icon.length > 0 ? {-->
+<!--      backgroundImage: selectedCategory.icon,-->
+<!--      backgroundPosition: '85% 2%',-->
+<!--      backgroundRepeat: 'no-repeat',-->
+<!--    } : {}"-->
+<!--      >-->
+<!--        <div class="card flex flex-col gap-4">-->
+<!--          <label class="block text-5xl text-center">{{ selectedCategory.name }}</label>-->
+<!--          <label class="block text-2xl text-center">{{ selectedCategory.icon }}</label>-->
+<!--          <div class="min-h-64 min-w-64">-->
+<!--            <div class="text-[8rem]" :class="isRunning ? 'text-white' : 'text-gray-500'">-->
+<!--              {{ formattedTime }}-->
+<!--            </div>-->
+<!--          </div>-->
+<!--          <Button label="Старт/Стоп" @click="startStop(selectedCategory.id)" class="mt-4"/>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </Dialog>-->
   </main>
 
 </template>
 
 <style scoped>
+.no-border-dialog .p-dialog {
+  border-radius: 12px !important;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2), 0 0 40px rgba(0, 0, 255, 0.3) !important;
+  animation: fadeIn 0.3s ease-in-out;
+}
 
+.no-border-dialog .p-dialog-content {
+  border: none !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.no-border-dialog .p-dialog-header {
+  border: none !important;
+  background: linear-gradient(90deg, #4f46e5, #9333ea) !important;
+  color: white !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 </style>

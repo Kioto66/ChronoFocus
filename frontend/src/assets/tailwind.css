@@ -21,7 +21,8 @@
         @apply grid grid-cols-2 lg:grid-cols-1 w-full
     }
     .card-cat{
-        @apply grid grid-cols-1 bg-blue-600 p-8 rounded-xl gap-2 lg:gap-4 cursor-pointer hover:bg-blue-300
+        @apply grid grid-cols-1 bg-blue-600 p-8 rounded-xl gap-2
+        lg:gap-4 cursor-pointer hover:bg-blue-300
     }
     .card-top{
         @apply  rounded-2xl m-4 border-2 border-blue-900
