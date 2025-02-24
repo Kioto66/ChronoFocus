@@ -1,19 +1,21 @@
 package ru.k4nk.chronofocus.http_api;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.Builder;
 
-@Builder
-public record ApiBody(String apiVer, JsonNode payload, ru.k4nk.chronofocus.http_api.ApiBody.Status status,
-                      String errorMessage) {
 
-    public boolean checkVersion(ApiVersion apiVersion) {
-        return this.apiVer().equals(apiVersion.toString());
+public record ApiBody(JsonNode payload, String details) {
+    public ApiBody {
     }
 
-    public enum Status {
-        OK,
-        ERROR
+    public ApiBody(JsonNode payload) {
+        this(payload, "");
+
+    }
+
+    public ApiBody(String details) {
+        this(null, details);
     }
 }
 
