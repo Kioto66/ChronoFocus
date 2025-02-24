@@ -40,15 +40,15 @@ public class ChronoTrackerController {
     }
 
     @GetMapping("/current_tracker")
-    public ResponseEntity<JsonNode> getCurrentTracker() {
+    public ResponseEntity<ApiBody> getCurrentTracker() {
         Optional<Tracker> trackerOpt = chronoTrackerService.findCurrentTracker();
 
         final JsonNode payload = jsonMapper.listToJson(trackerOpt.stream().toList());
-        return ResponseEntity.ok(payload);
+        return ResponseEntity.ok(createOkResponse(payload));
     }
 
     @GetMapping(value = "/summary", produces = "application/json")
-    public ResponseEntity<ReportSummary> getSummary(@RequestParam(name = "from") String fromStr,
+    public ResponseEntity<ApiBody> getSummary(@RequestParam(name = "from") String fromStr,
                                                @RequestParam(name = "to", required = false) String toStr) {
         LocalDateTime from = ApiHelper.parseStringDate(fromStr, true);
         LocalDateTime to;
@@ -59,29 +59,39 @@ public class ChronoTrackerController {
         }
 
         ReportSummary reportSummary = chronoTrackerService.getSummary(from, to);
-        return ResponseEntity.ok(reportSummary);
+        final JsonNode payload = jsonMapper.listToJson(List.of(reportSummary));
+
+        return ResponseEntity.ok(createOkResponse(payload));
     }
 
     @GetMapping("/category")
-    public ResponseEntity<JsonNode> getCategories(@RequestParam(name = "id", required = false) List<Integer> ids) {
+    public ResponseEntity<ApiBody> getCategories(@RequestParam(name = "id", required = false) List<Integer> ids) {
         List<Category> resultList = chronoTrackerService.getCategories(ids);
 
         final JsonNode payload = jsonMapper.listToJson(List.of(resultList));
-        return ResponseEntity.ok(payload);
+        return ResponseEntity.ok(createOkResponse(payload));
     }
 
     @PostMapping("/category")
-    public ResponseEntity<JsonNode> postCategory(@RequestBody ApiBody body) {
+    public ResponseEntity<ApiBody> postCategory(@RequestBody ApiBody body) {
         if (!body.apiVer().equals(ApiVersion.VERSION_1.toString())) {
-            return ResponseEntity.badRequest().body(jsonMapper.emptyArray());
+            return ResponseEntity.badRequest().body(ApiBody.builder()
+                    .apiVer(ApiVersion.VERSION_1.toString())
+                    .status(ApiBody.Status.OK)
+                    .payload(jsonMapper.emptyArray())
+                    .build()
+                    );
         }
         List<Category> categories = jsonMapper.jsonToList((ArrayNode) body.payload(), Category.class);
         List<Category> result = chronoTrackerService.saveAllCategories(categories);
-        return ResponseEntity.ok(jsonMapper.listToJson(result));
+        JsonNode payload = jsonMapper.listToJson(result);
+        return ResponseEntity.ok(createOkResponse(payload));
     }
 
+
+
     @GetMapping("/start")
-    public ResponseEntity<JsonNode> startTracking(
+    public ResponseEntity<ApiBody> startTracking(
             @RequestParam(name = "category_id") Integer categoryId,
             @RequestParam(name = "date_time", required = false) String fromStr) {
         LocalDateTime from = parseDateTimeOrNow(fromStr, LocalDateTime.now());
@@ -89,11 +99,11 @@ public class ChronoTrackerController {
         Tracker tracker = chronoTrackerService.startTracking(categoryId, from);
 
         final JsonNode payload = jsonMapper.listToJson(List.of(tracker));
-        return ResponseEntity.ok(payload);
+        return ResponseEntity.ok(createOkResponse(payload));
     }
 
     @GetMapping("/stop")
-    public ResponseEntity<JsonNode> stopTracking(
+    public ResponseEntity<ApiBody> stopTracking(
             @RequestParam(name = "category_id") Integer categoryId,
             @RequestParam(name = "date_time", required = false) String dateTimeStr) {
         LocalDateTime dateTime = parseDateTimeOrNow(dateTimeStr, LocalDateTime.now());
@@ -101,7 +111,7 @@ public class ChronoTrackerController {
         Tracker tracker = chronoTrackerService.stopTracking(categoryId, dateTime);
 
         final JsonNode payload = jsonMapper.listToJson(List.of(tracker));
-        return ResponseEntity.ok(payload);
+        return ResponseEntity.ok(createOkResponse(payload));
     }
 
     private LocalDateTime parseDateOrNow(String dateStr) {
@@ -109,4 +119,11 @@ public class ChronoTrackerController {
         return Objects.requireNonNullElseGet(dateTime, () -> LocalDate.now().atTime(23, 59, 59));
     }
 
+    private static ApiBody createOkResponse(JsonNode payload) {
+        return ApiBody.builder()
+                .apiVer(ApiVersion.VERSION_1.toString())
+                .status(ApiBody.Status.OK)
+                .payload(payload)
+                .build();
+    }
 }
