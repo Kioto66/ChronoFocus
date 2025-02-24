@@ -1,0 +1,6 @@
+<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+          <!-- Горизонтальная линия -->
+          <rect x="10" y="45" width="80" height="10" fill="#1a233a" />
+          <!-- Вертикальная линия -->
+          <rect x="45" y="10" width="10" height="80" fill="#1a233a" />
+        </svg>

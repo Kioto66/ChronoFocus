@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,6 +40,8 @@ public class ReportSummary {
         @JsonUnwrapped
         private Category category;
 
+        @Schema(description = "Duration formatted as {hours, minutes, seconds}",
+                example = "{\"hours\":1, \"minutes\":30, \"seconds\":15}")
         @JsonSerialize(using = DurationJsonSerializer.class)
         @JsonDeserialize(using = DurationJsonDeserializer.class)
         private Duration duration;
