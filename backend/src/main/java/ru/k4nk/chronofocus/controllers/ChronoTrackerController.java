@@ -17,7 +17,6 @@ import ru.k4nk.chronofocus.data.ReportSummary;
 import ru.k4nk.chronofocus.data.Tracker;
 import ru.k4nk.chronofocus.http_api.ApiBody;
 import ru.k4nk.chronofocus.http_api.ApiHelper;
-import ru.k4nk.chronofocus.http_api.JsonMapper;
 import ru.k4nk.chronofocus.services.ChronoTrackerService;
 
 import java.time.LocalDate;
@@ -64,7 +63,7 @@ public class ChronoTrackerController {
     @ApiResponse(responseCode = "200", description = "Категории успешно получены")
     @GetMapping("/category")
 
-    public ResponseEntity<ApiBody<List<Category>>> getCategories(
+    public ResponseEntity<ApiBody<Category>> getCategories(
             @Parameter(description = "Список ID категорий (необязательно)")
             @RequestParam(name = "id", required = false) List<Integer> ids) {
         return ResponseEntity.ok(new ApiBody<>(chronoTrackerService.getCategories(ids)));
@@ -75,11 +74,11 @@ public class ChronoTrackerController {
     @ApiResponse(responseCode = "400", description = "Некорректный формат JSON")
     @PostMapping("/category")
 
-    public ResponseEntity<ApiBody<List<Category>>> postCategory(
+    public ResponseEntity<ApiBody<Category>> postCategory(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Тело запроса с данными категорий", required = true,
                     content = @Content(schema = @Schema(implementation = ApiBody.class)))
-            @RequestBody ApiBody<List<Category>> body) {
+            @RequestBody ApiBody<Category> body) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiBody<>(chronoTrackerService.saveAllCategories(body.getPayload())));
     }
