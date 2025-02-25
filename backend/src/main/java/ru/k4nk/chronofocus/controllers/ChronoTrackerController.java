@@ -32,19 +32,6 @@ import java.util.List;
 public class ChronoTrackerController {
     private final ChronoTrackerService chronoTrackerService;
 
-    private final JsonMapper jsonMapper;
-
-    private static LocalDateTime parseDateTimeOrNow(String dateTimeStr, LocalDateTime now) {
-        LocalDateTime dateTime;
-        if (dateTimeStr == null) {
-            dateTime = now;
-        } else {
-            dateTime = ApiHelper.parseStringDateTime(dateTimeStr, false);
-        }
-        return dateTime;
-    }
-
-
     @Operation(summary = "Получить текущий трекер", description = "Возвращает текущий активный трекер")
     @ApiResponse(responseCode = "200", description = "Трекер найден")
     @ApiResponse(responseCode = "204", description = "Активный трекер не найден")
