@@ -18,24 +18,31 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
+@Schema(description = "Сводка по времени за период")
 public class ReportSummary {
+    @Schema(description = "Тип отчета", example = "summary")
     @JsonProperty("type")
     private static final String TYPE = "summary";
 
+    @Schema(description = "Начальная дата периода", example = "2025-02-18 00:00:00")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private final LocalDateTime from;
 
+    @Schema(description = "Конечная дата периода", example = "2025-02-18 23:59:59")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private final LocalDateTime to;
 
+    @Schema(description = "Дата формирования отчета", example = "2025-02-18 15:45:30")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd_HH:mm:ss")
     private LocalDateTime timestamp;
 
+    @Schema(description = "Список записей отчета")
     private List<ReportEntry> body;
 
     @Getter
     @Setter
     @AllArgsConstructor
+    @Schema(description = "Запись отчета по категории")
     public static class ReportEntry {
         @JsonUnwrapped
         private Category category;
