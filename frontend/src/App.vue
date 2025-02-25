@@ -12,6 +12,16 @@ import {useToast} from 'primevue/usetoast';
 import ProgressSpinner from "primevue/progressspinner";
 import Dialog from "primevue/dialog";
 import ApiService from "@/services/api";
+import {
+  refAuth,
+  login,
+  refreshT,
+  getAccessToken,
+  saveTokens,
+  getTokens,
+  clearTokens,
+  isAuthenticated,
+} from '@/services/auth';
 
 
 const colorsIcons = [
@@ -69,9 +79,43 @@ const colorsIcons = [
 // ]);
 //const cat = ref([]);
 const cat = ref([]);
+const errorMessage = ref('');
 const refPeriod = ref("month");
 const refRunningCategory = ref(0);
 const refStartTimestamp = ref(0);
+const isLoginVisible=ref(false);
+
+// const handleAuth = async () => {
+//   try {
+//     const { accessToken, refreshToken, type } = await getTokens();
+//     console.log('Токены успешно обновлены!');
+//     console.log('Новый Access Token:', accessToken);
+//     console.log('Новый Refresh Token:', refreshToken);
+//
+//     // Очищаем сообщение об ошибке
+//     errorMessage.value = '';
+//   } catch (error) {
+//     // Обрабатываем ошибку
+//     errorMessage.value = error.message || 'Произошла ошибка при обновлении токена';
+//     alert(errorMessage.value); // Показываем сообщение об ошибке
+//   }
+// };
+
+const handleAuth = async () => {
+  try {
+    const  accessToken  = await getAccessToken();
+    console.log('Новый Access Token:', accessToken);
+
+    // Очищаем сообщение об ошибке
+    errorMessage.value = '';
+  } catch (error) {
+    // Обрабатываем ошибку
+    errorMessage.value = error.message || 'Произошла ошибка при обновлении токена';
+    alert(errorMessage.value); // Показываем сообщение об ошибке
+  }
+};
+
+
 
 const selectedCategory = ref({id: 0, name: "", color: "", icon: "", duration: 0});
 
@@ -389,7 +433,8 @@ onMounted(refresh);
     <section class=" lg:row-span-2 bg-blue-600 rounded-xl m-4">
       <div class="grid grid-cols-[80px_1fr] lg:grid-cols-1 lg:h-96 bg-primary p-8 rounded-xl">
         <img src="/images/image-kioto-2.jpg"
-             class="rounded-full border-2 border-white w-20 h-20 lg:w-40 lg:h-40">
+             class="rounded-full border-2 border-white w-20 h-20 lg:w-40 lg:h-40
+             hover:bg-gray-800 cursor-pointer" @click="isLoginVisible=true">
         <div>
 
           <p class="text-lg text-blue-200">Report for</p>
@@ -467,6 +512,33 @@ onMounted(refresh);
               class="w-full mt-2"
           />
           <Button label="Добавить" @click="createCategory" class="mt-4"/>
+        </div>
+      </div>
+    </Dialog>
+
+    <Dialog
+        v-model:visible="isLoginVisible"
+        header="Авторизация"
+        modal
+        :contentStyle="{ backgroundColor: '##1a1d42' }"
+        :headerStyle="{ backgroundColor: '##1a1d42' }"
+        class="dark"
+    >
+      <div class="p-2  rounded-xl" :class="newCategory.color || 'bg-blue-300'">
+        <div class="card flex flex-col  gap-4">
+          <label class="block ">введите имя и пароль</label>
+          <InputText
+              v-model="refAuth.login"
+              class="w-full mt-2 "
+              placeholder="Введите имя"
+          />
+          <label class="block ">Пароль</label>
+          <InputText
+              v-model="refAuth.password"
+              class="w-full mt-2 "
+              placeholder="Введите пароль"
+          />
+          <Button label="Войти" @click="handleAuth" class="mt-4"/>
         </div>
       </div>
     </Dialog>
