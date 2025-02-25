@@ -1,0 +1,229 @@
+openapi: 3.0.0
+info:
+  title: ChronoFocus API
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080/api'
+    description: Development server
+paths:
+  /categories:
+    get:
+      summary: Получить список всех категорий
+      responses:
+        '200':
+          description: Список категорий
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+    post:
+      summary: Создать новую категорию
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+      responses:
+        '201':
+          description: Категория создана
+  /categories/{id}:
+    get:
+      summary: Получить категорию по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Категория найдена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+    put:
+      summary: Обновить категорию
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+      responses:
+        '200':
+          description: Категория обновлена
+    delete:
+      summary: Удалить категорию
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Категория удалена
+  /trackers/start:
+    post:
+      summary: Начать отслеживание задачи
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                categoryId:
+                  type: integer
+      responses:
+        '201':
+          description: Трекер запущен
+  /trackers/stop/{id}:
+    post:
+      summary: Остановить отслеживание задачи
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Трекер остановлен
+  /trackers/{id}:
+    put:
+      summary: Обновить трекер
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Tracker'
+      responses:
+        '200':
+          description: Трекер обновлен
+  /trackers:
+    get:
+      summary: Получить журнал трекеров за период
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Список трекеров
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tracker'
+  /trackers/active:
+    get:
+      summary: Получить текущий активный трекер
+      responses:
+        '200':
+          description: Активный трекер
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tracker'
+  /reports/summary:
+    get:
+      summary: Получить отчет за период
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Отчет
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportSummary'
+components:
+  schemas:
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        color:
+          type: string
+        icon:
+          type: string
+    Tracker:
+      type: object
+      properties:
+        id:
+          type: integer
+        category:
+          $ref: '#/components/schemas/Category'
+        startTimestamp:
+          type: string
+          format: date-time
+        stopTimestamp:
+          type: string
+          format: date-time
+    ReportSummary:
+      type: object
+      properties:
+        type:
+          type: string
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
+        timestamp:
+          type: string
+          format: date-time
+        body:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportEntry'
+    ReportEntry:
+      type: object
+      properties:
+        category:
+          $ref: '#/components/schemas/Category'
+        duration:
+          type: string

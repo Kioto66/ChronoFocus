@@ -32,10 +32,24 @@ import java.util.List;
 public class ChronoTrackerController {
     private final ChronoTrackerService chronoTrackerService;
 
+    private final JsonMapper jsonMapper;
+
+    private static LocalDateTime parseDateTimeOrNow(String dateTimeStr, LocalDateTime now) {
+        LocalDateTime dateTime;
+        if (dateTimeStr == null) {
+            dateTime = now;
+        } else {
+            dateTime = ApiHelper.parseStringDateTime(dateTimeStr, false);
+        }
+        return dateTime;
+    }
+
+
     @Operation(summary = "Получить текущий трекер", description = "Возвращает текущий активный трекер")
     @ApiResponse(responseCode = "200", description = "Трекер найден")
     @ApiResponse(responseCode = "204", description = "Активный трекер не найден")
     @GetMapping("/current_tracker")
+
     public ResponseEntity<ApiBody<Tracker>> getCurrentTracker() {
         return chronoTrackerService.findCurrentTracker()
                 .map(tracker -> ResponseEntity.ok(new ApiBody<>((tracker))))
@@ -56,11 +70,13 @@ public class ChronoTrackerController {
                 : LocalDate.now().atTime(23, 59, 59);
         ReportSummary summary = chronoTrackerService.getSummary(from, to);
         return ResponseEntity.ok(new ApiBody<>(summary));
+
     }
 
     @Operation(summary = "Получить категории", description = "Возвращает список категорий")
     @ApiResponse(responseCode = "200", description = "Категории успешно получены")
     @GetMapping("/category")
+
     public ResponseEntity<ApiBody<List<Category>>> getCategories(
             @Parameter(description = "Список ID категорий (необязательно)")
             @RequestParam(name = "id", required = false) List<Integer> ids) {
@@ -71,6 +87,7 @@ public class ChronoTrackerController {
     @ApiResponse(responseCode = "201", description = "Категории успешно созданы")
     @ApiResponse(responseCode = "400", description = "Некорректный формат JSON")
     @PostMapping("/category")
+
     public ResponseEntity<ApiBody<List<Category>>> postCategory(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Тело запроса с данными категорий", required = true,
@@ -90,6 +107,7 @@ public class ChronoTrackerController {
             @RequestParam(name = "category_id") Integer categoryId,
             @Parameter(description = "Дата и время начала в формате yyyy-MM-dd_HH:mm (необязательно)")
             @RequestParam(name = "date_time", required = false) String fromStr) {
+
         Tracker tracker = chronoTrackerService.startTracking(categoryId, parseDateTimeOrNow(fromStr, LocalDateTime.now()));
         return ResponseEntity.ok(new ApiBody<>(tracker));
     }
@@ -106,6 +124,7 @@ public class ChronoTrackerController {
             @Parameter(description = "Дата и время окончания в формате yyyy-MM-dd_HH:mm (необязательно)")
             @RequestParam(name = "date_time", required = false) String dateTimeStr) {
         LocalDateTime dateTime = parseDateTimeOrNow(dateTimeStr, LocalDateTime.now());
+
         try {
             Tracker tracker = chronoTrackerService.stopTracking(categoryId, dateTime);
             return ResponseEntity.ok(new ApiBody<>(tracker));

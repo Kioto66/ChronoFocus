@@ -54,6 +54,7 @@ public class ChronoTrackerService {
 
     @Transactional
     public Tracker stopTracking(Integer categoryId, LocalDateTime dateTime) throws IllegalArgumentException, EntityNotFoundException {
+
         if (dateTime == null) {
             dateTime = LocalDateTime.now();
         }
