@@ -79,8 +79,9 @@ public class ChronoTrackerController {
                     description = "Тело запроса с данными категорий", required = true,
                     content = @Content(schema = @Schema(implementation = ApiBody.class)))
             @RequestBody ApiBody<Category> body) {
+        List<Category> payload = body.getPayload();
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiBody<>(chronoTrackerService.saveAllCategories(body.getPayload())));
+                .body(new ApiBody<>(chronoTrackerService.saveAllCategories(payload)));
     }
 
     @Operation(summary = "Начать отслеживание", description = "Начинает отслеживание времени для указанной категории")
