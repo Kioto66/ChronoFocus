@@ -2,17 +2,19 @@ package ru.k4nk.chronofocus.http_api;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
 @Schema(description = "Обертка для API-ответов")
+@NoArgsConstructor
 public class ApiBody<T> {
     @Schema(description = "Полезная нагрузка")
-    private final List<T> payload;
+    private List<T> payload;
 
     @Schema(description = "Дополнительные детали", example = "Запрос выполнен успешно")
-    private final String details;
+    private String details;
 
     public ApiBody(List<T> payload) {
         this.payload = payload;

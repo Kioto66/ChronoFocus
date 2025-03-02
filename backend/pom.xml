@@ -50,6 +50,11 @@
     </build>
 
     <dependencies>
+        <!--______________ security ______________-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
         <!-- Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
