@@ -2,6 +2,7 @@ package ru.k4nk.chronofocus.data.sys;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -21,6 +22,7 @@ public class User {
     @Column(nullable = false, unique = true)
     String login;
 
+
     @Column(nullable = false)
     String password;
 
@@ -31,6 +33,7 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id")
     )
     @OnDelete(action = OnDeleteAction.CASCADE)
+
     private Set<Role> roles = new HashSet<>();
 
     public User(String login, String password, Set<Role> roles) {

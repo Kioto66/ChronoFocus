@@ -29,6 +29,7 @@ public class AuthService {
     private static final String ROLE_ADMIN = "ADMIN";
     private final RoleRepository roleRepository;
 
+
     private final PasswordEncoder passwordEncoder;
 
     public AuthService(UserService userService, JwtProvider jwtProvider, RoleRepository roleRepository,
@@ -37,6 +38,7 @@ public class AuthService {
         this.jwtProvider = jwtProvider;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
+
         if (roleRepository.findByName(ROLE_ADMIN).isEmpty()) {
             roleRepository.save(new Role(ROLE_ADMIN));
         }
@@ -45,6 +47,7 @@ public class AuthService {
     public JwtResponse login(String login, String password) {
         final User user = userService.findByLogin(login)
                 .orElseThrow(() -> new AuthException("Пользователь " + login + " не найден"));
+
         if (passwordEncoder.matches(password, user.getPassword())){
             final String accessToken = jwtProvider.generateAccessToken(user);
             final String refreshToken = jwtProvider.generateRefreshToken(user);
@@ -84,6 +87,7 @@ public class AuthService {
         if(userService.findByLogin(login).isPresent()) {
             throw new IllegalStateException("Пользователь " + login + " уже зарегистрирован в системе");
         }
+
         String hashedPassword = passwordEncoder.encode(password);
         userService.createUser(login, hashedPassword, ROLE_ADMIN);
         return login(login, password);
