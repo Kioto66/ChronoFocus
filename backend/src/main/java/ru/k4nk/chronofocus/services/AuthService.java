@@ -4,8 +4,8 @@ import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import ru.k4nk.chronofocus.data.sys.Role;
 import ru.k4nk.chronofocus.data.sys.RoleRepository;
 import ru.k4nk.chronofocus.data.sys.User;
@@ -29,10 +29,16 @@ public class AuthService {
     private static final String ROLE_ADMIN = "ADMIN";
     private final RoleRepository roleRepository;
 
-    public AuthService(UserService userService, JwtProvider jwtProvider, RoleRepository roleRepository) {
+
+    private final PasswordEncoder passwordEncoder;
+
+    public AuthService(UserService userService, JwtProvider jwtProvider, RoleRepository roleRepository,
+                       PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.jwtProvider = jwtProvider;
         this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
+
         if (roleRepository.findByName(ROLE_ADMIN).isEmpty()) {
             roleRepository.save(new Role(ROLE_ADMIN));
         }
@@ -41,7 +47,8 @@ public class AuthService {
     public JwtResponse login(String login, String password) {
         final User user = userService.findByLogin(login)
                 .orElseThrow(() -> new AuthException("Пользователь " + login + " не найден"));
-        if (user.getPassword().equals(password)) {
+
+        if (passwordEncoder.matches(password, user.getPassword())){
             final String accessToken = jwtProvider.generateAccessToken(user);
             final String refreshToken = jwtProvider.generateRefreshToken(user);
             refreshStorage.put(user.getLogin(), refreshToken);
@@ -53,21 +60,6 @@ public class AuthService {
 
     public JwtResponse login(@NonNull JwtRequest authRequest) throws AuthException {
         return login(authRequest.getLogin(), authRequest.getPassword());
-    }
-
-    public JwtResponse getAccessToken(@NonNull String refreshToken) throws AuthException {
-        if (jwtProvider.validateRefreshToken(refreshToken)) {
-            final Claims claims = jwtProvider.getRefreshClaims(refreshToken);
-            final String login = claims.getSubject();
-            final String saveRefreshToken = refreshStorage.get(login);
-            if (saveRefreshToken != null && saveRefreshToken.equals(refreshToken)) {
-                final User user = userService.findByLogin(login)
-                        .orElseThrow(() -> new AuthException("Пользователь не найден"));
-                final String accessToken = jwtProvider.generateAccessToken(user);
-                return new JwtResponse(accessToken, null, null);
-            }
-        }
-        return new JwtResponse(null, null, null);
     }
 
     public JwtResponse refresh(@NonNull String refreshToken) throws AuthException {
@@ -91,12 +83,13 @@ public class AuthService {
         return (JwtAuthentication) SecurityContextHolder.getContext().getAuthentication();
     }
 
-    @Transactional
     public JwtResponse singUp(String login, String password) throws IllegalArgumentException, IllegalStateException {
         if(userService.findByLogin(login).isPresent()) {
             throw new IllegalStateException("Пользователь " + login + " уже зарегистрирован в системе");
         }
-        userService.createUser(login, password, ROLE_ADMIN);
+
+        String hashedPassword = passwordEncoder.encode(password);
+        userService.createUser(login, hashedPassword, ROLE_ADMIN);
         return login(login, password);
     }
 }
