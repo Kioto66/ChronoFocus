@@ -15,7 +15,7 @@ import java.util.Optional;
 
 @Service
 @AllArgsConstructor
-public class WorkTrackerService {
+public class ChronoTrackerService {
     private final CategoryRepository categoryRepository;
     private final TrackersRepository trackersRepository;
 
@@ -53,7 +53,8 @@ public class WorkTrackerService {
     }
 
     @Transactional
-    public Tracker stopTracking(Integer categoryId, LocalDateTime dateTime) {
+    public Tracker stopTracking(Integer categoryId, LocalDateTime dateTime) throws IllegalArgumentException, EntityNotFoundException {
+
         if (dateTime == null) {
             dateTime = LocalDateTime.now();
         }

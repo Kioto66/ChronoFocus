@@ -3,6 +3,7 @@ package ru.k4nk.chronofocus.data;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 @Getter
 @Setter
@@ -18,9 +19,11 @@ public class Category {
     private String name;
 
     @Column(nullable = false)
+    @ColumnDefault("")
     private String color;
 
     @Column(nullable = false)
+    @ColumnDefault("")
     private String icon;
 
 }

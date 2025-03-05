@@ -1,19 +1,39 @@
 package ru.k4nk.chronofocus.http_api;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Builder;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Builder
-public record ApiBody(String apiVer, JsonNode payload, ru.k4nk.chronofocus.http_api.ApiBody.Status status,
-                      String errorMessage) {
+import java.util.List;
 
-    public boolean checkVersion(ApiVersion apiVersion) {
-        return this.apiVer().equals(apiVersion.toString());
+@Data
+@Schema(description = "Обертка для API-ответов")
+@NoArgsConstructor
+public class ApiBody<T> {
+    @Schema(description = "Полезная нагрузка")
+    private List<T> payload;
+
+    @Schema(description = "Дополнительные детали", example = "Запрос выполнен успешно")
+    private String details;
+
+    public ApiBody(List<T> payload) {
+        this.payload = payload;
+        this.details = "Запрос выполнен успешно";
     }
 
-    public enum Status {
-        OK,
-        ERROR
+    public ApiBody(T payload) {
+        this.payload = List.of(payload);
+        this.details = "Запрос выполнен успешно";
+    }
+
+    public ApiBody(String details) {
+        this.payload = null;
+        this.details = details;
+    }
+
+    public ApiBody(List<T> payload, String details) {
+        this.payload = payload;
+        this.details = details;
     }
 }
 
