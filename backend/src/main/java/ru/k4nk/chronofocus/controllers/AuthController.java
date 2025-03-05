@@ -55,6 +55,8 @@ public class AuthController {
             return ResponseEntity.ok(authService.login(request.login(), request.password()));
         } catch (AuthException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
 }
