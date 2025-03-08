@@ -8,7 +8,7 @@ Content-Type: application/json
   "payload": [
     {
       "id": 1,
-      "startTimestamp": "2025-03-07_09:34:37",
+      "startTimestamp": "2025-03-07_08:34:37",
       "endTimestamp": "2025-03-07_17:42:26",
       "category": {
         "id": 1,
