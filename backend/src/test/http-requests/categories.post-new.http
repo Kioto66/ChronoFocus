@@ -1,4 +1,4 @@
-### Post New Categories
+### Post new categories
 POST http://{{host}}/categories
 Authorization: Bearer {{accessToken}}
 Content-Type: application/json
