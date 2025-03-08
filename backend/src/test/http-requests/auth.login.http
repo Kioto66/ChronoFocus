@@ -1,0 +1,20 @@
+### login to api
+POST http://{{host}}/auth/login
+Content-Type: application/json
+
+{
+  "login": "{{login}}",
+  "password": "{{password}}"
+}
+> {%
+    if (response.status === 200) {
+        const responseBody = response.body;
+
+        // Сохраняем токены в глобальные переменные
+        client.global.set("accessToken", responseBody.accessToken);
+        client.global.set("refreshToken", responseBody.refreshToken);
+
+    } else {
+        client.log("Ошибка при получении токенов: " + response.status);
+    }
+%}

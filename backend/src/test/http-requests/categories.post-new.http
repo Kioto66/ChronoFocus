@@ -1,0 +1,20 @@
+### Post New Categories
+POST http://{{host}}/categories
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "payload": [
+    {
+      "name": "Работа",
+      "color": "#ffffff",
+      "icon": "some.ico"
+    },
+    {
+      "name": "Учёба",
+      "color": "#000000",
+      "icon": "some.ico"
+    }
+  ],
+  "details": ""
+}

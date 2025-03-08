@@ -1,0 +1,20 @@
+### sing up to api
+POST http://{{host}}/auth/sing-up
+Content-Type: application/json
+
+{
+  "login": "{{login}}",
+  "password": "{{password}}",
+  "promo": "{{promo}}"
+}
+> {%
+    if (response.status === 200) {
+        const responseBody = response.body;
+
+        client.global.set("accessToken", responseBody.accessToken);
+        client.global.set("refreshToken", responseBody.refreshToken);
+        client.log("Токены успешно обновлены!");
+    } else {
+        client.log("Ошибка при получении токенов: " + response.status);
+    }
+%}

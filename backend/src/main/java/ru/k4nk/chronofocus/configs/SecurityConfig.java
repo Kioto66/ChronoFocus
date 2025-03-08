@@ -28,7 +28,7 @@ import java.util.Arrays;
 public class SecurityConfig {
     private final static String[] PERMIT_ALL_PATHS = new String[]{
             "/public/**", "/version", "/status", "/actuator/**", "/auth/**", "/h2-console/**",
-            "/favicon.ico"
+            "/favicon.ico", "/swagger-ui/**", "/v3/**"
     };
 
     @Bean

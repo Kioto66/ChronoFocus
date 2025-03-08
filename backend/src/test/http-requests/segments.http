@@ -1,0 +1,16 @@
+#### Get Segments
+GET http://{{host}}/segments/active
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+
+###
+### Get Segments
+GET http://{{host}}/segments
+    ?from=2025-03-07
+    &to=2025-03-07
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+
+

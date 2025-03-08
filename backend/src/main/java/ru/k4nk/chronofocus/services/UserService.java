@@ -21,11 +21,7 @@ public class UserService {
     private final RoleRepository roleRepository;
 
     public Optional<User> findByLogin(@NonNull String login) {
-        User byLogin = userRepository.findByLogin(login);
-        if (byLogin == null) {
-            return Optional.empty();
-        }
-        return Optional.of(byLogin);
+        return userRepository.findByLogin(login);
     }
 
     @Transactional

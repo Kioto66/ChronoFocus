@@ -1,0 +1,13 @@
+### Start time segment
+GET http://{{host}}/segments/start
+    ?category_id=1
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+###
+
+### GET request to example server
+GET http://{{host}}/segments/start
+    ?category_id=2
+    &date_time=2025-03-07_12:00:00
+Accept: application/json
+Authorization: Bearer {{accessToken}}

@@ -13,7 +13,7 @@
 
     <groupId>ru.k4nk</groupId>
     <artifactId>chronofocus-backend</artifactId>
-    <version>0.1.2</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>chronofocus-backend</name>

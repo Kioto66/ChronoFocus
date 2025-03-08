@@ -1,0 +1,4 @@
+### Get Categories
+GET http://{{host}}/categories
+Accept: application/json
+Authorization: Bearer {{accessToken}}

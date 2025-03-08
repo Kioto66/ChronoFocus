@@ -1,0 +1,9 @@
+### Get Summary
+GET http://{{host}}/summary
+    ?from=2025-03-07
+    &to=2025-03-07
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+
+###

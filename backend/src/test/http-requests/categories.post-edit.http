@@ -1,0 +1,38 @@
+### Get Categories
+GET http://{{host}}/categories
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+> {%
+    if (response.status === 200) {
+        const responseBody = response.body;
+        const categories = responseBody.payload;
+
+        function incrementColor(color) {
+            const colorValue = parseInt(color.slice(1), 16);
+            const newColorValue = colorValue + 1;
+            return "#" + newColorValue.toString(16).padStart(6, '0');
+        }
+
+        const updatedCategories = categories.map(category => {
+            return {
+                ...category,
+                color: incrementColor(category.color)
+            };
+        });
+
+        client.global.set("updatedCategories", JSON.stringify(updatedCategories));
+    } else {
+        client.log("Ошибка при получении категорий: " + response.status);
+    }
+%}
+
+### Post Editted Categories
+POST http://{{host}}/categories
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "payload": {{updatedCategories}},
+  "details": ""
+}

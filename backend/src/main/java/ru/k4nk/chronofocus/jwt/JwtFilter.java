@@ -60,6 +60,7 @@ public class JwtFilter extends OncePerRequestFilter {
             log.debug("token {}", token);
             log.debug("jwtProvider.validateAccessToken(token) {}",
                     token != null ? jwtProvider.validateAccessToken(token) : "null");
+            log.debug(request.getRequestURI());
             throw new AccessDeniedException("Access denied");
         }
         fc.doFilter(request, response);

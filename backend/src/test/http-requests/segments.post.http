@@ -1,0 +1,53 @@
+### Put segements
+POST http://{{host}}/segments
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "payload": [
+    {
+      "id": 1,
+      "startTimestamp": "2025-03-07_07:34:37",
+      "endTimestamp": "2025-03-07_17:42:26",
+      "category": {
+        "id": 1,
+        "name": "Работа",
+        "color": "#ffffff",
+        "icon": "some.ico"
+      }
+    },
+    {
+      "id": 3,
+      "startTimestamp": "2025-03-07_11:45:31",
+      "category": {
+        "id": 1,
+        "name": "Работа",
+        "color": "#ffffff",
+        "icon": "some.ico"
+      }
+    },
+    {
+      "id": 2,
+      "startTimestamp": "2025-03-07_12:35:18",
+      "endTimestamp": "2025-03-07_17:45:31",
+      "category": {
+        "id": 2,
+        "name": "Учёба",
+        "color": "#000000",
+        "icon": "some.ico"
+      }
+    },
+    {
+      "id": 4,
+      "startTimestamp": "2025-03-07_17:45:31",
+      "category": {
+        "id": 2,
+        "name": "Учёба",
+        "color": "#000000",
+        "icon": "some.ico"
+      }
+    }
+  ],
+  "details": "Запрос выполнен успешно"
+}

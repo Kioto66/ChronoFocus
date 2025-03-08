@@ -1,0 +1,13 @@
+
+### Get Categories
+GET http://{{host}}/categories
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+
+#### Get Sessions
+#GET http://{{host}}/sessions?
+#    from=2025-01-13&
+#    to=2025-03-05
+#Accept: application/json
+#Authorization: Bearer {{accessToken}}

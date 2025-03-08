@@ -1,12 +1,11 @@
 package ru.k4nk.chronofocus.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
+import lombok.Data;
+import ru.k4nk.chronofocus.data.sys.User;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "categories")
 public class Category {
@@ -19,11 +18,14 @@ public class Category {
     private String name;
 
     @Column(nullable = false)
-    @ColumnDefault("")
     private String color;
 
     @Column(nullable = false)
-    @ColumnDefault("")
     private String icon;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
+    private User user;
 
 }

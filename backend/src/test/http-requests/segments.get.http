@@ -1,0 +1,7 @@
+### Get time segments
+GET http://{{host}}/segments/active
+Accept: application/json
+Authorization: Bearer {{accessToken}}
+
+
+###
